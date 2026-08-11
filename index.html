@@ -42,18 +42,17 @@
   <dialog id="nameDialog"><form class="modal" method="dialog" id="nameForm"><h2>What should we call you?</h2><p>Your name appears beneath any Juz you complete so the group can see who has read it.</p><div class="field"><label for="nameInput">Display name</label><input id="nameInput" maxlength="40" autocomplete="name" placeholder="e.g. Nasra" required /></div><button class="primary" value="save">Save name</button><p class="fine">Use a name your reading group will recognize.</p></form></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script type="module">
-   const SETTINGS = {
-  timeZone: 'America/Toronto',
-
-  firebaseConfig: {
-    apiKey: "AIzaSyAnWPt9krXhxwJhbqGgWR9P76rFAusdHBQ",
-    authDomain: "quran-khatmah-tracker.firebaseapp.com",
-    projectId: "quran-khatmah-tracker",
-    storageBucket: "quran-khatmah-tracker.firebasestorage.app",
-    messagingSenderId: "1036236711559",
-    appId: "1:1036236711559:web:71055a03d9e937689b3a22"
-  }
-};
+    const SETTINGS = {
+      timeZone: 'America/Toronto',
+      firebaseConfig: {
+        apiKey: "AIzaSyAnWPt9krXhxwJhbqGgWR9P76rFAusdHBQ",
+        authDomain: "quran-khatmah-tracker.firebaseapp.com",
+        projectId: "quran-khatmah-tracker",
+        storageBucket: "quran-khatmah-tracker.firebasestorage.app",
+        messagingSenderId: "1036236711559",
+        appId: "1:1036236711559:web:71055a03d9e937689b3a22"
+      }
+    };
     const state={dateKey:'',completed:{},khatmahCount:0,completedForDate:false};
     const $=s=>document.querySelector(s), grid=$('#juzGrid'), ring=$('#ring'), toast=$('#toast');
     const savedName=localStorage.getItem('quranTrackerName')||''; $('#profileName').textContent=savedName||'Add your name'; $('#timezoneLabel').textContent=SETTINGS.timeZone;
