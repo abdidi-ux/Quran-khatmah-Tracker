@@ -1,17 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function validTracker() {
+      return request.resource.data.keys().hasOnly([
+          'dateKey', 'completed', 'khatmahCount', 'completedForDate'
+        ])
+        && request.resource.data.dateKey is string
+        && request.resource.data.dateKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.completed is map
+        && request.resource.data.completed.size() <= 30
+        && request.resource.data.khatmahCount is int
+        && request.resource.data.khatmahCount >= 0
+        && request.resource.data.completedForDate is bool;
+    }
+
     match /quranTrackers/main {
       allow read: if true;
-      allow create, update: if
-        request.resource.data.keys().hasOnly([
-          'dateKey', 'completed', 'khatmahCount', 'completedForDate'
-        ]) &&
-        request.resource.data.dateKey is string &&
-        request.resource.data.completed is map &&
-        request.resource.data.khatmahCount is int &&
-        request.resource.data.khatmahCount >= 0 &&
-        request.resource.data.completedForDate is bool;
+      allow create: if validTracker();
+      allow update: if validTracker()
+        && request.resource.data.khatmahCount >= resource.data.khatmahCount
+        && request.resource.data.khatmahCount <= resource.data.khatmahCount + 1;
       allow delete: if false;
     }
   }

@@ -1,39 +1,65 @@
 # Qur’an Khatmah Circle
 
-A responsive shared tracker for all 30 Juz. Readers add a display name, mark completed Juz, and see group progress. When all 30 are complete, the Khatmah counter increments once. The checked Juz reset after the configured timezone moves to a new calendar day.
+A production-ready, responsive bilingual community tracker for completing all 30 Juz together. The site supports live shared progress, reader attribution, Juz-specific comments, recent activity, a private invite-code gate, daily personal recitations, Arabic RTL layout, dark mode, and automatic daily reset in the configured timezone.
 
-## Preview locally
+## Live behavior
 
-Open `index.html` in a browser. Without Firebase configuration it runs in **demo mode** using that browser’s local storage.
+- **Shared progress:** all connected visitors see completions in real time through Cloud Firestore.
+- **Safe concurrent updates:** Firestore transactions prevent simultaneous readers from overwriting each other and ensure the Khatmah counter increases once.
+- **Reader ownership:** only the browser identity that marked a Juz can reopen it.
+- **Juz comments:** each Juz keeps the latest 30 short comments so the shared document stays bounded.
+- **Invite gate:** visitors enter a code once per browser before joining.
+- **Bilingual UI:** English and Arabic, including right-to-left layout.
+- **Private recitation checklist:** stored only in that visitor’s browser and reset daily.
+- **Graceful fallback:** if Firebase is unavailable, the site enters local demo mode instead of breaking.
 
-## Turn on real-time sharing
+## Project structure
 
-1. Create a Firebase project at https://console.firebase.google.com/.
-2. Add a **Web app** to the project.
-3. Create a **Cloud Firestore** database.
-4. In `index.html`, find `firebaseConfig` near the bottom and replace all `PASTE_...` values with the config Firebase gives you.
-5. In Firestore Rules, paste the contents of `firestore.rules`, then publish the rules.
-6. Host the folder using Firebase Hosting, Netlify, Vercel, GitHub Pages, or another static host.
+- `index.html` — semantic page structure and dialogs
+- `styles.css` — responsive, accessible light/dark styling
+- `app.js` — UI, live sync, comments, translations, and browser storage
+- `core.mjs` — tested state, reset, transaction, comment, and invite utilities
+- `config.js` — timezone, Firebase web configuration, and invite-code hash
+- `firestore.rules` — bounded validation for the shared tracker document
+- `tests/` — unit, static accessibility, and browser flow tests
 
-When configured, the page automatically switches from “Demo mode” to “Live” and syncs changes for everyone.
+## Run locally
 
-## Timezone
+A local server is recommended because the app uses JavaScript modules:
 
-The reset timezone is set in `index.html`:
-
-```js
-timeZone: 'America/Toronto'
+```bash
+python3 -m http.server 4173
 ```
 
-Change it to any valid IANA timezone, such as `Europe/London`, `America/New_York`, or `Asia/Riyadh`.
+Open `http://localhost:4173/?demo=1` to force local demo mode.
 
-## Completion logic
+## Test
 
-- Readers can mark or unmark a Juz until all 30 are complete.
-- The final mark increments the Khatmah counter exactly once and locks the finished day.
-- A shared transaction prevents two simultaneous clicks from incrementing the counter twice.
-- The first connected client after midnight clears the 30 daily marks while preserving the lifetime Khatmah count.
+```bash
+npm run check
+npm run test:browser
+```
 
-## Production security note
+The browser test verifies the invite flow, profile creation, Juz completion, comments, Arabic RTL mode, console errors, and a 390px mobile viewport.
 
-The included rules are suitable for a trusted private reading group and validate the document shape, but they do not identify individual users. For a public community, enable Firebase Authentication and restrict writes to signed-in users before publishing widely.
+## Change the invite code
+
+The invite is a lightweight community gate, not a substitute for user authentication. Change it before sharing widely:
+
+```bash
+node scripts/set-invite-code.mjs "YOUR-NEW-CODE"
+```
+
+Commit the resulting `config.js` change. The plain code is never written to the repository; only its SHA-256 hash is stored.
+
+## Firebase and hosting
+
+The current Firebase web configuration is already present in `config.js`. GitHub Pages can serve the site directly from the `main` branch.
+
+After changing `firestore.rules`, publish those rules in the Firebase console so the deployed database matches this repository. The data model intentionally remains compatible with the existing `quranTrackers/main` document, so shared progress and comments work without a data migration.
+
+## Scalability and security
+
+This version is designed for a family, mosque, or community circle with many readers and bounded comments. All writes use transactions, every Juz keeps at most 30 comments, and the shared document remains below Firestore’s document limit.
+
+The invite screen is a **soft gate** because the application is a static website. For an open public product with untrusted traffic, the next production step is Firebase Authentication, App Check, per-user rate limits, moderation tools, and moving comments into a paginated subcollection or dedicated backend.
